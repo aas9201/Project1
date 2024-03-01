@@ -30,8 +30,9 @@ def serialise_sbol(instance, path):
     doc.clear()
     primary_structure = []
     data_dict = instance.gather_data()
+    # Dictionary to convert roles into SBOL ontology codes
     conversion = {
-        "re": "0001687",  # Dictionary to convert roles into SBOL ontology codes
+        "re": "0001687",  
         "cargo": "0000704",
         "abr": "0000001",
         "terminator": "0000141",
@@ -63,4 +64,5 @@ def serialise_sbol(instance, path):
         primary_structure
     )  # Assign primary structure to plasmid component
     instance_built.compile()
-    doc.write(path)
+    #Writes the document, full file path is needed as input for now 
+    doc.write(path) 
