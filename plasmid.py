@@ -65,7 +65,18 @@ class Part:
 
     @role.setter
     def role(self, role):
-        """sets the role attribute, type: String, must only be certain roles also"""
+        """sets the role attribute, type: String, must only be certain roles also:
+            "gene",
+            "abr",
+            "ori",
+            "terminator",
+            "promoter",
+            "scar",
+            "re",
+            "oriT",
+            "cargo","""
+        
+
         if not isinstance(role, str):
             raise TypeError("Role must be a string")
         if role not in [
@@ -109,6 +120,7 @@ class Module:
     Fetched: True or False, allows for different structure construction if sequence is imported
     """
 
+
     def __init__(
         self, name, unique_id, module_type, description="", structure=[], fetched=False
     ):
@@ -141,8 +153,10 @@ class Module:
         """sets the unique_id attribute, type: String"""
         if not isinstance(id, str):
             raise TypeError("ID must be a string")
-        self._unique_id = id
-
+        self._unique_id = id 
+        
+      
+        
     @property
     def module_type(self):
         """gets the module_type attribute"""
@@ -154,6 +168,19 @@ class Module:
         if module not in ["cargo", "marker", "origin", "invariant"]:
             raise ValueError("Module must be either a cargo, marker, origin, invariant")
         self._module_type = module
+
+
+    @property
+    def description(self):
+        """gets the description attribute"""
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        """sets the description attribute, type: String"""
+        if not isinstance(description, str):
+            raise TypeError("Description must be a string")
+        self._description = description
 
     @property
     def structure(self):
@@ -180,8 +207,9 @@ class Module:
             self.PacI = Part("PacI", "paci", "TTAATTAA", "re")
             self.SpeI = Part("SpeI", "spei", "ACTAGT", "re")
             self._structure = [self.PacI, self.cargo, self.SpeI]
+            # The input part list is inserted by a slice to remove the placeholder
             self._structure[1:2] = (
-                structure_list  # The input part list is inserted by a slice to remove the placeholder
+                structure_list  
             )
 
         if self.module_type == "origin":
@@ -189,19 +217,21 @@ class Module:
             self.FseI = Part("FseI", "fsei", "GGCCGGCC", "re")
             self.AscI = Part("AscI", "asci", "GGCGCGCC", "re")
             self._structure = [self.FseI, self.replication, self.AscI]
+            # The input part list is inserted by a slice to remove the placeholder
             self._structure[1:2] = (
-                structure_list  # The input part list is inserted by a slice to remove the placeholder
+                structure_list  
             )
 
         if self.module_type == "marker" and self.fetched == False:
             self.marker = None
             self.PshAI = Part(
                 "pshai", "1", "GACGTC", "re"
-            )  ##Need to sort this logic out a bit more
+            )  #Need to sort this logic out a bit more, however SEVA synbiohub is down for some reason so I can't access the sequence logic requried
             self.SwaI = Part("swai", "1", "ATTTAAAT", "re")
             self._structure = [self.SwaI, self.marker, self.PshAI]
+            # The input part list is inserted by a slice to remove the placeholder
             self._structure[1:2] = (
-                structure_list  # The input part list is inserted by a slice to remove the placeholder
+                structure_list  
             )
 
         if self.module_type == "marker" and self.fetched == True:
@@ -209,6 +239,9 @@ class Module:
 
         if self.module_type == "invariant":
             self._structure = structure_list
+
+
+
 
     def get_sequence(self):
         """Obtains a sequence by concatenating sequence of parts together"""
@@ -234,11 +267,9 @@ class Plasmid:
         self.description = description
         self.components = []
 
-
+        # Three placeholder variables to just provide template structure
         self.cargo_module = None
-        self.marker_module = (
-            None  # Three placeholder variables to just provide template structure
-        )
+        self.marker_module = None  
         self.origin_module = None
 
         # Creating the non-variable modules on construction of an object
@@ -306,6 +337,19 @@ class Plasmid:
         self._unique_id = id
 
     @property
+    def description(self):
+        """gets the description attribute"""
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        """sets the description attribute, type: String"""
+        if not isinstance(description, str):
+            raise TypeError("Description must be a string")
+        self._description = description
+
+
+    @property
     def structure(self):
         """Gets the structure attribute"""
         return self._structure
@@ -322,15 +366,16 @@ class Plasmid:
 
         # Creates a list containing the module types and compares it with predefined structure to see if its correct
         correct_val = ["cargo", "marker", "origin"]
-        order = []
-        for i in structure:
-            order.append(i.module_type)
+        order = [module.module_type for module in structure]
+
         if correct_val != order:
             raise ValueError(
                 "Please ensure the modules are in the correct order: [Cargo,Marker,Origin]"
             )
         
-        self.components = structure #For use in the future construction methods
+        #For use in the future construction methods
+        self.components = structure 
+
         iterVal = iter(structure)
         for parts, element in enumerate(self._structure):
             if (
@@ -345,9 +390,12 @@ class Plasmid:
         for module in self.structure:
             plasmid_sequence += module.get_sequence()
         return plasmid_sequence
+    
 
     def insert_scar(self, scar, module=None, position=None):
-        """ "Method to insert scars"""
+        """ "Method to insert scars:
+        Modules: T1,T0,OriT
+        Position: before or after"""
         module_dict = {"T1": self.t1, "T0": self.t0, "OriT": self.orit}
 
         module = module_dict.get(
@@ -375,10 +423,8 @@ class Plasmid:
                     part.sequence
                 )  # Finds where the part occurs in the sequence and adds it to dictionary along with other data attributes
                 positions.append(position)
-                my_dict[part.name] = [position]
-                my_dict[part.name].append(part.unique_id)
-                my_dict[part.name].append(part.role)
-                my_dict[part.name].append(part.description)
+                my_dict[part.name] = [position, part.unique_id, part.role, part.description]
+
 
         for i in range(
             len(positions) - 1
